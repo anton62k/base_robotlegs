@@ -2,15 +2,14 @@ package base.script {
 
 	import base.Actions;
 	import base.events.LogicEvent;
+	import base.model.ConfigModel;
+	import base.model.ModularStore;
+	import base.model.config.Module;
 	import base.robotlegs.ModularData;
 	import base.robotlegs.ModuleManager;
 	import base.robotlegs.events.ModularEvent;
 	import base.script.vo.Check;
 	import base.script.vo.Script;
-
-	import common.model.ConfigModel;
-	import common.model.ModularStore;
-	import common.model.config.Module;
 
 	import flash.events.IEventDispatcher;
 
@@ -94,30 +93,9 @@ package base.script {
 			}
 		}
 
-		private function execute(script:Script, config:ModularData):Boolean {
-			var check:Boolean = false;
-
-			if (script.check.action == config.action && script.check.module == config.module) {
-				check = true;
-			}
-
-			if (check) {
-				for each (var _item:Check in script.execute) {
-					if (_item.action == Actions.OPEN) {
-						openModule(_item.module, config);
-
-					} else if (_item.action == Actions.CLOSE) {
-						closeModule(_item.module);
-
-					} else if (_item.action == Actions.UPDATE) {
-						updateModule(_item.module, config);
-
-					} else if (_item.action == Actions.LOGIC) {
-						logicCommand(_item.module, config);
-					}
-				}
-			}
-			return check;
+		public function logicCommand(logic:String, data:ModularData = null):void {
+			if (!excludeLogic[logic]) log('logicCommand', logic);
+			eventDispatcher.dispatchEvent(new LogicEvent(logic, data));
 		}
 
 		protected function openModule(moduleName:String, config:ModularData):void {
@@ -170,9 +148,30 @@ package base.script {
 			}
 		}
 
-		public function logicCommand(logic:String, data:ModularData = null):void {
-			if (!excludeLogic[logic]) log('logicCommand', logic);
-			eventDispatcher.dispatchEvent(new LogicEvent(logic, data));
+		private function execute(script:Script, config:ModularData):Boolean {
+			var check:Boolean = false;
+
+			if (script.check.action == config.action && script.check.module == config.module) {
+				check = true;
+			}
+
+			if (check) {
+				for each (var _item:Check in script.execute) {
+					if (_item.action == Actions.OPEN) {
+						openModule(_item.module, config);
+
+					} else if (_item.action == Actions.CLOSE) {
+						closeModule(_item.module);
+
+					} else if (_item.action == Actions.UPDATE) {
+						updateModule(_item.module, config);
+
+					} else if (_item.action == Actions.LOGIC) {
+						logicCommand(_item.module, config);
+					}
+				}
+			}
+			return check;
 		}
 
 	}
