@@ -51,6 +51,11 @@ package base.starling
 			return value * _textureScaleFactor;
 		}
 		
+		public function scaleInt(value:Number):int
+		{
+			return Math.round(value * _textureScaleFactor);
+		}
+		
 		override public function dispose():void {
 			disposeMovies();
 			super.dispose();

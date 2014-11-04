@@ -4,6 +4,7 @@ package base.startup {
 	import base.model.ConfigModel;
 	import base.robotlegs.BaseContext;
 	import base.starling.BaseSprite;
+	import flash.display.LoaderInfo;
 	import starling.display.Sprite;
 	import starling.events.Event;
 	
@@ -15,7 +16,13 @@ package base.startup {
 			_config = value;
 		}
 		
+		public static function setLoaderInfo(loaderInfo:LoaderInfo):void 
+		{
+			_loaderInfo = loaderInfo;
+		}
+		
 		private static var _config:ConfigModel;
+		private static var _loaderInfo:LoaderInfo;
 		
 		public function StarlingRoot() 
 		{
@@ -29,7 +36,7 @@ package base.startup {
 			var container:BaseSprite = new BaseSprite();
 			addChild(container);			
 			
-			var context:BaseContext = new BaseContext('main', MainConfig, this, container, [_config, ConfigModel]);
+			var context:BaseContext = new BaseContext('main', MainConfig, this, container, [_config, ConfigModel], [_loaderInfo, LoaderInfo]);
 		}
 		
 	}

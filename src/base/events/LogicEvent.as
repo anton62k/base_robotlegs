@@ -1,12 +1,15 @@
 package base.events 
 {
-	
+
 	import base.robotlegs.ModularData;
+
 	import flash.events.Event;
 	
 	public class LogicEvent extends Event 
 	{
-		
+
+		public static const SCRIPT_MANAGER:String = 'scriptManager';
+
 		public var data:ModularData;
 		
 		public function LogicEvent(type:String, data:ModularData = null, bubbles:Boolean=false, cancelable:Boolean=false) 

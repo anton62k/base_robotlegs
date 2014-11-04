@@ -1,101 +1,87 @@
-package base.robotlegs 
-{
-	
+package base.robotlegs {
+
 	import base.model.ConfigModel;
 	import base.starling.BaseSprite;
-	import org.as3commons.collections.Map;
+
 	import starling.display.DisplayObjectContainer;
-	import starling.display.Quad;
 	import starling.display.Sprite;
-	
-	public class ModuleManager
-	{
-		
-		private var modules:Map;
-		
-		private var contextView:DisplayObjectContainer;
-		private var popUp:Sprite;
-		private var quad:Quad;
-		private var moduleContainer:Sprite;
-		
+
+	public class ModuleManager {
+
 		[Inject]
 		public var view:BaseSprite;
-		
+
 		[Inject]
 		public var configModel:ConfigModel;
-		
-		public function ModuleManager() 
-		{
-			modules = new Map();
-		}
-		
+
+		private var modules:Object;
+		private var contextView:DisplayObjectContainer;
+		private var moduleContainer:Sprite;
+
+		private var moduleLayout:IModuleLayout;
+
 		[PostConstruct]
-		public function init():void
-		{
-			this.contextView = view;
-			
+		public function init():void {
+			modules = {};
+
 			moduleContainer = new Sprite();
-			this.contextView.addChild(moduleContainer);
-			
-			var quad:Quad = new Quad(contextView.stage.stageWidth, contextView.stage.stageHeight, 0x0);
-			quad.alpha = 0.5;
-			quad.visible = false;
-			this.contextView.addChild(quad);
-			
-			popUp = new Sprite()
-			this.contextView.addChild(popUp);
+			view.addChild(moduleContainer);
+
+			moduleLayout = new SimpleModuleLayout();
+			moduleLayout.init(moduleContainer);
 		}
-		
-		public function has(name:String):Boolean
-		{
-			return modules.hasKey(name);
+
+		public function setLayout(moduleLayout:IModuleLayout):void {
+			this.moduleLayout = moduleLayout;
+			this.moduleLayout.init(moduleContainer);
 		}
-		
-		public function add(name:String, moduleData:ModularData, up:Boolean = true):Boolean
-		{
+
+		public function has(name:String):Boolean {
+			return modules.hasOwnProperty(name);
+		}
+
+		public function add(name:String, moduleData:ModularData, up:Boolean = true):Boolean {
 			if (has(name)) {
 				if (up) {
 					var module:BaseContext = get(name);
-					module.contextView.parent.addChild(module.contextView);
+					moduleLayout.update(name, module.contextView);
 				}
 				return false;
 			}
-			
-			var container:BaseSprite = new BaseSprite();
-			moduleContainer.addChild(container);
-			
+
 			var clazz:Class = configModel.modules.get(name).config as Class;
-			var context:BaseContext = new BaseContext(name, clazz, container, moduleData) as BaseContext;
-			modules.add(name, context);
-			
+			var context:BaseContext = new BaseContext(name, clazz, moduleLayout.add(name), moduleData) as BaseContext;
+			modules[name] = context;
+
 			return true;
 		}
 		
-		public function get(name:String):BaseContext
-		{
-			return modules.itemFor(name);
+		public function getOpened():Array {
+			var retval:Array = [];
+			for (var name:String in modules) {
+				retval.push(name);
+			}
+			return retval;
 		}
 		
-		public function remove(name:String):Boolean
-		{
+		public function get(name:String):BaseContext {
+			return modules[name];
+		}
+
+		public function remove(name:String):Boolean {
 			if (!has(name)) return false;
-			
+
 			var context:BaseContext = get(name);
-			context.contextView.parent.removeChild(context.contextView);
+			moduleLayout.remove(name, context.contextView);
 			context.destroy();
 			if (context.contextView is BaseSprite) {
 				(context.contextView as BaseSprite).dispose();
 			}
-			modules.removeKey(name);
-			popUp.visible = (popUp.numChildren > 0 );
-			
-			if (popUp.numChildren > 0) {
-				popUp.getChildAt(popUp.numChildren - 1).visible = true;
-			}
-			
+			delete modules[name];
+
 			return true;
 		}
-		
+
 	}
 
 }

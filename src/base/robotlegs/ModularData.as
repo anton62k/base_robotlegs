@@ -1,107 +1,52 @@
-package base.robotlegs 
-{
-	
+package base.robotlegs {
+
 	import base.Actions;
+
 	import com.kashirov.models.Unit;
-	
-	public class ModularData extends Unit 
-	{
-		
-		public static function create(action:String):ModularData
-		{
+
+	public class ModularData extends Unit {
+
+		public static function create(action:String):ModularData {
 			var data:ModularData = new ModularData();
 			return data.setAction(action);
 		}
-		
-		public static function logic(command:String):ModularData
-		{
+
+		public static function logic(command:String):ModularData {
 			return new ModularData().setAction(Actions.LOGIC).setLogic(command);
 		}
-		
-		public static function update(module:String):ModularData
-		{
+
+		public static function update(module:String):ModularData {
 			return new ModularData().setAction(Actions.UPDATE).setModule(module);
 		}
-		
-		public static function close(module:String):ModularData
-		{
+
+		public static function close(module:String):ModularData {
 			return new ModularData().setAction(Actions.CLOSE).setModule(module);
 		}
-		
-		public static function select(module:String):ModularData
-		{
+
+		public static function select(module:String):ModularData {
 			return new ModularData().setAction(Actions.SELECT);
 		}
-		
-		public static function open(module:String):ModularData
-		{
+
+		public static function open(module:String):ModularData {
 			return new ModularData().setAction(Actions.OPEN).setModule(module);
 		}
-		
-		public static function moduleData(value:Object):ModularData
-		{
+
+		public static function stack():ModularData {
+			return new ModularData().setAction(Actions.STACK);
+		}
+
+		public static function addToStack(data:ModularData):ModularData {
+			return new ModularData().setAction(Actions.ADD_TO_STACK).setModuleData(data);
+		}
+
+		public static function moduleData(value:Object):ModularData {
 			return new ModularData().setModuleData(value)
 		}
-		
-		public function ModularData()
-		{
-			
+
+		public function ModularData() {
+
 		}
-		
-		public function setOwnModule(module:String):ModularData
-		{
-			this.ownModule = module;
-			return this;
-		}		
-		
-		public function setAction(action:String):ModularData
-		{
-			this.action = action;
-			return this;
-		}
-		
-		public function setModule(module:String):ModularData
-		{
-			this.module = module;
-			return this;
-		}
-		
-		public function setLogic(logic:String):ModularData
-		{
-			this.logic = logic;
-			return this;
-		}
-		
-		public function setItemId(itemId:int):ModularData
-		{
-			this.itemId = itemId;
-			return this;
-		}
-		
-		public function setType(type:String):ModularData
-		{
-			this.type = type;
-			return this;
-		}
-		
-		public function setValue(value:Number):ModularData
-		{
-			this.value = value;
-			return this;
-		}
-		
-		public function setModuleData(moduleData:Object):ModularData
-		{
-			this.moduleData = moduleData;
-			return this;
-		}
-		
-		public function setEnabled(value:Boolean):ModularData
-		{
-			this.enabled = value;
-			return this;
-		}
-		
+
 		public var ownModule:String = '';
 		public var action:String = '';
 		public var module:String = '';
@@ -111,7 +56,72 @@ package base.robotlegs
 		public var value:Number = 0;
 		public var enabled:Boolean = true;
 		public var moduleData:Object;
-		
+		public var recreate:Boolean = false;
+
+		public function setProperty(name:String, value:*):ModularData {
+			this.moduleData = this.moduleData || { };
+			this.moduleData[name] = value;
+			return this;
+		}
+
+		public function getProperty(name:String):* {
+			return this.hasProperty(name) ? this.moduleData[name] : null;
+		}
+
+		public function hasProperty(name:String):Boolean {
+			return this.moduleData ? this.moduleData.hasOwnProperty(name) : false;
+		}
+
+		public function setOwnModule(module:String):ModularData {
+			this.ownModule = module;
+			return this;
+		}
+
+		public function setAction(action:String):ModularData {
+			this.action = action;
+			return this;
+		}
+
+		public function setModule(module:String):ModularData {
+			this.module = module;
+			return this;
+		}
+
+		public function setLogic(logic:String):ModularData {
+			this.logic = logic;
+			return this;
+		}
+
+		public function setItemId(itemId:int):ModularData {
+			this.itemId = itemId;
+			return this;
+		}
+
+		public function setType(type:String):ModularData {
+			this.type = type;
+			return this;
+		}
+
+		public function setValue(value:Number):ModularData {
+			this.value = value;
+			return this;
+		}
+
+		public function setModuleData(moduleData:Object):ModularData {
+			this.moduleData = moduleData;
+			return this;
+		}
+
+		public function setEnabled(value:Boolean):ModularData {
+			this.enabled = value;
+			return this;
+		}
+
+		public function setRecreate(value:Boolean):ModularData {
+			this.recreate = value;
+			return this;
+		}
+
 	}
 
 }

@@ -40,11 +40,14 @@ package base.script {
 		private var logFunc:Function;
 		private var excludeLogic:Object;
 		private var excludeUpdate:Object;
+		private var datas:Vector.<ModularData>;
+		private var stack:Vector.<ModularData>;
 
 		[PostConstruct]
 		public function init():void {
 			excludeLogic = { };
 			excludeUpdate = { };
+			stack = new <ModularData>[];
 		}
 
 		public function addLogFunc(func:Function):void {
@@ -60,36 +63,14 @@ package base.script {
 		}
 
 		public function update(config:ModularData):void {
-			if (config.ownModule) {
-				var modularItem:ModularData = modularStore.get(config.ownModule) || modularStore.add(config.ownModule);
-				modularItem.updateData(config.data());
-			}
+			if (config.action == Actions.STACK) {
+				if (stack.length) process(stack.shift())
 
-			var total:int = 0;
-			var count:int = 0;
+			} else if (config.action == Actions.ADD_TO_STACK) {
+				stack.push(config.moduleData);
 
-			for each (var script:Script in configModel.scripts) {
-				total += 1;
-				var check:Boolean = execute(script, config);
-
-				if (check) {
-					count += 1;
-				}
-			}
-
-			if (!count) {
-				if (config.action == Actions.CLOSE) {
-					closeModule(config.module);
-
-				} else if (config.action == Actions.OPEN) {
-					openModule(config.module, config);
-
-				} else if (config.action == Actions.UPDATE) {
-					updateModule(config.module, config);
-
-				} else if (config.action == Actions.LOGIC) {
-					logicCommand(config.logic, config);
-				}
+			} else {
+				process(config);
 			}
 		}
 
@@ -108,6 +89,10 @@ package base.script {
 				moduleData = modularStore.get(moduleName).moduleData;
 			} else {
 				log('openModule', moduleName);
+			}
+
+			if (moduleManager.has(moduleName) && config.recreate) {
+				closeModule(moduleName);
 			}
 
 			moduleManager.add(moduleName, ModularData.moduleData(moduleData));
@@ -148,6 +133,55 @@ package base.script {
 			}
 		}
 
+		private function process(config:ModularData):void {
+			datas = new <ModularData>[];
+
+			if (config.ownModule) {
+				var modularItem:ModularData = modularStore.get(config.ownModule) || modularStore.add(config.ownModule);
+				modularItem.updateData(config.data());
+			}
+
+			var total:int = 0;
+			var count:int = 0;
+
+			for each (var script:Script in configModel.scripts) {
+				total += 1;
+				var check:Boolean = execute(script, config);
+
+				if (check) {
+					count += 1;
+				}
+			}
+
+			if (!count) {
+				if (config.action == Actions.CLOSE) {
+					closeModule(config.module);
+					datas.push(ModularData.close(config.module));
+
+				} else if (config.action == Actions.OPEN) {
+					openModule(config.module, config);
+					datas.push(ModularData.open(config.module));
+
+				} else if (config.action == Actions.UPDATE) {
+					updateModule(config.module, config);
+					datas.push(ModularData.update(config.module));
+
+				} else if (config.action == Actions.LOGIC) {
+					logicCommand(config.logic, config);
+					datas.push(ModularData.logic(config.logic));
+
+				}
+			}
+
+			processDatas();
+		}
+
+		private function processDatas():void {
+			for each (var data:ModularData in datas) {
+				eventDispatcher.dispatchEvent(new LogicEvent(LogicEvent.SCRIPT_MANAGER, data));
+			}
+		}
+
 		private function execute(script:Script, config:ModularData):Boolean {
 			var check:Boolean = false;
 
@@ -159,18 +193,23 @@ package base.script {
 				for each (var _item:Check in script.execute) {
 					if (_item.action == Actions.OPEN) {
 						openModule(_item.module, config);
+						datas.push(ModularData.open(_item.module));
 
 					} else if (_item.action == Actions.CLOSE) {
 						closeModule(_item.module);
+						datas.push(ModularData.close(_item.module));
 
 					} else if (_item.action == Actions.UPDATE) {
 						updateModule(_item.module, config);
+						datas.push(ModularData.update(_item.module));
 
 					} else if (_item.action == Actions.LOGIC) {
 						logicCommand(_item.module, config);
+						datas.push(ModularData.logic(_item.module));
 					}
 				}
 			}
+
 			return check;
 		}
 

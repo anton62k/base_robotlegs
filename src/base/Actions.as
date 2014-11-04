@@ -13,7 +13,9 @@ package base
 		public static const INIT:String = "init";
 		public static const UPDATE:String = "update";
 		public static const LOGIC:String = "logic";
-		
+		public static const STACK:String = "stack";
+		public static const ADD_TO_STACK:String = "addToStack";
+
 	}
 
 }

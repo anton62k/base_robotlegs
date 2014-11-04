@@ -29,10 +29,12 @@ package base.startup {
 		override protected function startup():void
 		{
 			Cc.startOnStage(this, 'w');
+			Cc.listenUncaughtErrors(loaderInfo);
 			
 			StarlingRoot.setConfig(getConfig());
+			StarlingRoot.setLoaderInfo(loaderInfo);
 			starling = new Starling(StarlingRoot, stage, new Rectangle(0, 0, stage.stageWidth, stage.stageHeight));
-			//starling.showStats = true;
+			starling.showStats = true;
 			starling.start();
 		}
 		
